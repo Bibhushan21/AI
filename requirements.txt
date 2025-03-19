@@ -2,4 +2,5 @@ Flask
 gunicorn
 ollama
 PyPDF2
+requests
 
