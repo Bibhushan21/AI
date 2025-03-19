@@ -21,7 +21,7 @@ def extract_prompt_from_pdf(pdf_path):
         return ""
 
 # ✅ Load system prompt from PDF
-pdf_path = os.path.join("web", "Brainstorming Agent - System Prompt.pdf")
+pdf_path = os.path.join("Brainstorming Agent - System Prompt.pdf")
 system_prompt = extract_prompt_from_pdf(pdf_path)
 
 if not system_prompt:
