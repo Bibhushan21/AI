@@ -2,12 +2,14 @@ from flask import Flask, render_template, request, jsonify
 import requests
 import PyPDF2
 import os
+from mistralai import Mistral
 
 # Initialize Flask app
 MultiverzAI = Flask(__name__)
 
-# ✅ Correct Ollama API URL
-OLLAMA_API_URL = "http://localhost:11434/v1/chat/completions"
+# ✅ Correct Mistral API URL
+MISTRAL_API_URL = "https://api.mistral.ai/v1/chat/completions"
+MISTRAL_API_KEY = "your_mistral_api_key"  # ✅ Replace with your actual API key
 
 # ✅ Function to extract system prompt from a PDF
 def extract_prompt_from_pdf(pdf_path):
@@ -30,11 +32,7 @@ else:
     print("✅ System prompt loaded successfully.")
 
 # ✅ System message to guide AI behavior
-system_message = {"role": "system", 
-                  "content"
-                  : 
-                      system_prompt
-                  }
+system_message = {"role": "system", "content": system_prompt}
 
 # ✅ Initialize chat memory (Limited to last 10 messages for better performance)
 memory = [system_message]
@@ -61,16 +59,17 @@ def chat():
         memory = memory[-10:]
 
     try:
-        # ✅ Make API call to Ollama with conversation history
+        # ✅ Make API call to Mistral with conversation history
         payload = {
-            "model": "llama3.2:latest",  # ✅ Change to "llama3.2:latest" if needed
+            "model": "mistral-large",  # ✅ Change model if needed
             "messages": memory
         }
-        response = requests.post(OLLAMA_API_URL, json=payload)
+        headers = {"Authorization": f"Bearer {MISTRAL_API_KEY}"}
+        response = requests.post(MISTRAL_API_URL, json=payload, headers=headers)
 
         if response.status_code == 200:
             response_data = response.json()
-
+            
             # ✅ Fix response parsing
             ai_response = response_data.get("choices", [{}])[0].get("message", {}).get("content", "⚠️ No content received.")
 
@@ -78,10 +77,10 @@ def chat():
             memory.append({"role": "assistant", "content": ai_response})
 
         else:
-            ai_response = f"⚠️ Error: Ollama API returned {response.status_code} - {response.text}"
+            ai_response = f"⚠️ Error: Mistral API returned {response.status_code} - {response.text}"
 
     except requests.exceptions.ConnectionError:
-        ai_response = "⚠️ Error: Could not connect to Ollama. Ensure it is running locally."
+        ai_response = "⚠️ Error: Could not connect to Mistral API. Ensure your API key is correct."
 
     except Exception as e:
         ai_response = f"⚠️ Unexpected error: {str(e)}"
