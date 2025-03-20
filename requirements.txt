@@ -1,6 +1,8 @@
 Flask
 gunicorn
-ollama
+mistralai
 PyPDF2
 requests
+
+
 
