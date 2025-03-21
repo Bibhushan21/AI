@@ -22,7 +22,7 @@ def extract_prompt_from_pdf(pdf_path):
         return "You are an AI assistant. Answer questions helpfully."
 
 # Load system prompt from the PDF
-pdf_path = "Brainstromming/Brainstorming Agent - System Prompt.pdf"  
+pdf_path = "Brainstorming Agent - System Prompt.pdf"  
 system_prompt = extract_prompt_from_pdf(pdf_path)
 
 print("✅ System prompt loaded successfully." if system_prompt else "⚠️ Using default system prompt.")
