@@ -53,7 +53,7 @@ def chat():
 
     try:
         # Initialize Mistral client
-        api_key = "N2VeTffMFqGYvyVS3D8ZJKgjmlvn7VKZ"  # Replace with your actual API key
+        api_key = "API"  # Replace with your actual API key
         model = "mistral-large-latest"
 
         client = Mistral(api_key=api_key)
