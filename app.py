@@ -18,24 +18,19 @@ def extract_prompt_from_pdf(pdf_path):
                     prompt_text.append(page_text.replace("\n", " "))  
             return " ".join(prompt_text).strip()
     except Exception as e:
-        return f"Error reading system prompt: {str(e)}"
+        print(f"⚠️ Error reading system prompt: {str(e)}")
+        return "You are an AI assistant. Answer questions helpfully."
 
 # Load system prompt from the PDF
-pdf_path = "Brainstorming Agent - System Prompt.pdf"  
+pdf_path = "Brainstromming/Brainstorming Agent - System Prompt.pdf"  
 system_prompt = extract_prompt_from_pdf(pdf_path)
 
-if not system_prompt or "Error" in system_prompt:
-    print("⚠️ Warning: System prompt not loaded correctly.")
-else:
-    print("✅ System prompt loaded successfully.")
+print("✅ System prompt loaded successfully." if system_prompt else "⚠️ Using default system prompt.")
 
-system_message = {
-    "role": "system",
-    "content": 
-        system_prompt
-}
+# System prompt message
+system_message = {"role": "system", "content": system_prompt}
 
-# Initialize chat memory 
+# Initialize chat memory (Limit history to prevent excessive memory usage)
 memory = []
 
 @MultiverzAI.route("/")
@@ -45,28 +40,37 @@ def home():
 @MultiverzAI.route("/chat", methods=["POST"])
 def chat():
     global memory
-    data = request.json
-    user_name = data.get("user_name", "").strip()
-    user_input = data.get("message", "").strip()
+    data = request.get_json()
 
-    if not user_name or not user_input:
-        return jsonify({"error": "User name and message are required"}), 400
+    # Validate request data
+    if not data or "message" not in data or not data["message"].strip():
+        return jsonify({"error": "Message cannot be empty."}), 400
+
+    user_input = data["message"].strip()
+    user_name = data.get("user_name", "User").strip()
 
     memory.append({"role": "user", "content": user_input})
 
     try:
         # Initialize Mistral client
-        api_key = "N2VeTffMFqGYvyVS3D8ZJKgjmlvn7VKZ"  # Set your Mistral API key here
-        model = "mistral-large-latest"  # Choose your model (adjust as needed)
+        api_key = "N2VeTffMFqGYvyVS3D8ZJKgjmlvn7VKZ"  # Replace with your actual API key
+        model = "mistral-large-latest"
 
         client = Mistral(api_key=api_key)
-        # Send the chat request to Mistral
+        
+        # Send chat request
         response = client.chat.complete(
             model=model,
-            messages=[system_message] + memory  # Keep system prompt + chat history
+            messages=[system_message] + memory  # Include system prompt + chat history
         )
-        ai_response = response.choices[0].message.content
+
+        ai_response = response.choices[0].message.content if response.choices else "I couldn't understand that."
+
+        # Store AI response in memory
         memory.append({"role": "assistant", "content": ai_response})
+
+        # Limit chat memory to the last 10 exchanges (to avoid infinite growth)
+        memory = memory[-10:]
 
     except Exception as e:
         ai_response = f"Error: {str(e)}"
