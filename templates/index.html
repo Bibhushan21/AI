@@ -7,68 +7,89 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <div class="chat-container">
-        <h1>Multiverz AI ChatBot</h1>
 
-        <!-- User Name Input -->
-        <div id="user-name-container">
-            <input type="text" id="user-name" placeholder="Enter your name..." autofocus>
-            <button onclick="saveUserName()">Start Chat</button>
+    <!-- Floating Chat Icon -->
+    <div class="chat-icon" onclick="toggleChat()">
+        💬
+    </div>
+
+    <!-- Chatbot Container -->
+    <div class="chat-container" id="chat-container">
+        <div class="chat-header">
+            <span>Multiverz Brainstroming AI</span>
+            <button onclick="toggleChat()">✖</button>
         </div>
+        
+        <div id="chat-box"></div>
 
-        <!-- Chat Section (Hidden Until Name is Entered) -->
-        <div id="chat-section" style="display: none;">
-            <div id="chat-box"></div>
+        <div class="chat-footer">
             <input type="text" id="user-input" placeholder="Type a message...">
             <button onclick="sendMessage()">Send</button>
+        </div>
+
+        <div id="loading" class="loading">
+            <div class="spinner"></div> AI is thinking...
         </div>
     </div>
 
     <script>
-        let userName = "";
-
-        function saveUserName() {
-            userName = document.getElementById("user-name").value.trim();
-            if (!userName) {
-                alert("Please enter your name to start chatting.");
-                return;
-            }
-            document.getElementById("user-name-container").style.display = "none";
-            document.getElementById("chat-section").style.display = "block";
+        function toggleChat() {
+            let chatContainer = document.getElementById("chat-container");
+            chatContainer.style.display = chatContainer.style.display === "none" ? "flex" : "none";
         }
 
+        function formatAIResponse(text) {
+            return text
+                .replace(/### (.*?)\n/g, '<h3>$1</h3>')  // Convert ### headings to <h3>
+                .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')  // Convert **bold** to <b>
+                .replace(/(^|\n)(\d+)\. /g, '$1<b>$2.</b> ') // Bold only the number at the start
+                .replace(/\*(.*?)\*:/g, '<b>$1:</b>')    // Bold phrases like *Core Problem:*
+                .replace(/\n- /g, '<br>- ')              // Preserve bullet points
+                .replace(/\n/g, '<br>');                 // Convert new lines to <br>
+        }
+        
+        
+        
+        
+        
         function sendMessage() {
             let userInput = document.getElementById("user-input").value.trim();
             if (!userInput) return;
-
+        
             let chatBox = document.getElementById("chat-box");
-            let userMessage = `<div class='user-message'><strong>${userName}:</strong> ${userInput}</div>`;
+            let loadingIndicator = document.getElementById("loading");
+        
+            // Add user message to chatbox
+            let userMessage = `<div class='user-message'><strong>You:</strong> ${userInput}</div>`;
             chatBox.innerHTML += userMessage;
             document.getElementById("user-input").value = "";
-
+        
+            // Show loading animation
+            loadingIndicator.style.display = "block";
+        
             fetch("/chat", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ user_name: userName, message: userInput })
+                body: JSON.stringify({ message: userInput }) // Ensure message is sent correctly
             })
             .then(response => response.json())
             .then(data => {
-                let formattedResponse = formatAIResponse(data.ai_response);
-                let aiMessage = `
-                    <div class='ai-message'>
-                        <div class="ai-header"><strong>🤖 AI:</strong></div>
-                        <div class="ai-content">${formattedResponse}</div>
-                    </div>`;
+                let formattedResponse = formatAIResponse(data.ai_response || "I couldn't understand that.");
+                let aiMessage = `<div class='ai-message'><strong>🤖 AI:</strong> ${formattedResponse}</div>`;
                 chatBox.innerHTML += aiMessage;
+        
+                // Hide loading animation
+                loadingIndicator.style.display = "none";
+        
                 chatBox.scrollTop = chatBox.scrollHeight;
             })
-            .catch(error => console.error("Error:", error));
+            .catch(error => {
+                console.error("Error:", error);
+                loadingIndicator.style.display = "none"; // Hide loading on error
+            });
         }
-
-        function formatAIResponse(response) {
-            let formatted = response.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>").replace(/\n/g, "<br>");
-            return formatted;
-        }
+        
     </script>
+
 </body>
 </html>
