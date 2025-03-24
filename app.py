@@ -28,7 +28,9 @@ system_prompt = extract_prompt_from_pdf(pdf_path)
 print("✅ System prompt loaded successfully." if system_prompt else "⚠️ Using default system prompt.")
 
 # System prompt message
-system_message = {"role": "system", "content": system_prompt}
+system_message = {"role": "system", "content":
+    system_prompt
+    }
 
 # Initialize chat memory (Limit history to prevent excessive memory usage)
 memory = []
@@ -53,7 +55,7 @@ def chat():
 
     try:
         # Initialize Mistral client
-        api_key = "N2VeTffMFqGYvyVS3D8ZJKgjmlvn7VKZ"
+        api_key = "N2VeTffMFqGYvyVS3D8ZJKgjmlvn7VKZ"  # Replace with your actual API key
         model = "mistral-large-latest"
 
         client = Mistral(api_key=api_key)
