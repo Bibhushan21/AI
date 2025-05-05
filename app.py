@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from flask import Flask, request, jsonify, render_template
 import asyncio
 from src.agents.master_agent import MasterAgent
@@ -12,6 +13,10 @@ from flask_mail import Mail, Message
 from dotenv import load_dotenv
 import os
 from mistralai.client import MistralClient  # Import Mistral library
+=======
+from flask import Flask, render_template, request, jsonify
+from mistralai import Mistral  # Import Mistral library
+>>>>>>> 11840e9173913037474e09c5d1a189680334f822
 import PyPDF2
 import os
 
@@ -249,6 +254,7 @@ def chat():
 
     try:
         # Initialize Mistral client
+<<<<<<< HEAD
         api_key = os.getenv('MISTRAL_API_KEY')  # Replace with your actual API key
         model = "mistral-large-latest"
 
@@ -256,6 +262,15 @@ def chat():
         
         # Send chat request
         response = client.chat(
+=======
+        api_key = "N2VeTffMFqGYvyVS3D8ZJKgjmlvn7VKZ"  # Replace with your actual API key
+        model = "mistral-large-latest"
+
+        client = Mistral(api_key=api_key)
+        
+        # Send chat request
+        response = client.chat.complete(
+>>>>>>> 11840e9173913037474e09c5d1a189680334f822
             model=model,
             messages=[system_message] + memory  # Include system prompt + chat history
         )
