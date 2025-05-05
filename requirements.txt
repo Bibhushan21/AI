@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 aiohttp
 pydantic
 python-dotenv
@@ -10,13 +9,3 @@ gunicorn
 Flask-Mail
 PyPDF2
 requests
-=======
-Flask
-gunicorn
-mistralai
-PyPDF2
-requests
-
-
-
->>>>>>> 11840e9173913037474e09c5d1a189680334f822
