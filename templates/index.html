@@ -3,72 +3,197 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Chatbot</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Economic Data Analysis</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body>
-    <div class="chat-container">
-        <h1>Multiverz AI ChatBot</h1>
+<body>  
+    <!-- Navigation Bar -->
+    <nav id="desktop-nav">
+       <div class="logo">
+           <a href="/">
+               <img src="{{ url_for('static', filename='Multiverz Logo.png') }}" alt="ai.Multiverz Logo" height="40">
+               <span class="fw-bold">AI.Multiverz</span>
+           </a>
+       </div>
+       <div>
+           <ul class="nav-links">
+               <li><a href="/">Home</a></li>
+               <li><a href="/about">About</a></li>
+               <li><a href="/services">Services</a></li>
+               <li><a href="/contact">Contact</a></li>
+           </ul>
+       </div>
+   </nav>
+    <section class="indicator-suggestions">
+        <h2>🌍 What Can You Search?</h2>
+        <p>Here are some example indicators you can explore:</p>
+        <ul>
+            <li><button class="suggestion">GDP of Germany from 2010 to 2020</button></li>
+            <li><button class="suggestion">CO2 emissions of India from 2005 to 2015</button></li>
+            <li><button class="suggestion">Population growth of Brazil since 1990</button></li>
+            <li><button class="suggestion">Unemployment rate in the USA from 2010 to 2023</button></li>
+            <li><button class="suggestion">Inflation rate in France for the last decade</button></li>
+        </ul>
+    </section>
+    <div class="container">
+        
+        <h1>Economic Data Analysis System</h1>
+        <form id="query-form">
+            <input type="text" id="query" placeholder="Enter your query here">
+            
+            <label for="data-source">Select Data Source:</label>
+            <select id="data-source">
+                <option value="world_bank">World Bank</option>
+                <option value="un">UN</option>
+                <option value="imf">IMF</option>
+                <option value="all">All</option>
+            </select>
+            
+            <button type="submit">Submit</button>
+        </form>
 
-        <!-- User Name Input -->
-        <div id="user-name-container">
-            <input type="text" id="user-name" placeholder="Enter your name..." autofocus>
-            <button onclick="saveUserName()">Start Chat</button>
+        <div class="section">
+            <h3>Raw Data</h3>
+            <div id="rawDataSpinner" class="spinner" style="display: none;"></div>
+            <div id="rawData"></div>
         </div>
 
-        <!-- Chat Section (Hidden Until Name is Entered) -->
-        <div id="chat-section" style="display: none;">
-            <div id="chat-box"></div>
+        <div class="section">
+            <h3>AI Analysis</h3>
+            <div id="aiAnalysisSpinner" class="spinner" style="display: none;"></div>
+            <div id="aiAnalysis"></div>
+        </div>
+
+        <div class="section">
+            <h3>Visualization</h3>
+            <div id="graphSpinner" class="spinner" style="display: none;"></div>
+            <canvas id="visualizationChart" width="400" height="200"></canvas>
+
+            <h4>Select Graph Type</h4>
+            <div id="graphTypeButtons" class="button-group">
+                <button type="button" data-type="line">Line</button>
+                <button type="button" data-type="bar">Bar</button>
+                <button type="button" data-type="pie">Pie</button>
+                <button type="button" data-type="doughnut">Doughnut</button>
+                <button type="button" data-type="radar">Radar</button>
+                <button type="button" data-type="polarArea">Polar Area</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>Contact Us</h3>
+            <p>If you encounter issues with data accuracy or availability, please let us know by submitting a complaint below.</p>
+            <form id="contact-form">
+                <label for="country">Country:</label>
+                <input type="text" id="country" name="country" placeholder="Enter country name" required>
+
+                <label for="start-year">Start Year:</label>
+                <input type="number" id="start-year" name="start-year" placeholder="Enter start year" required>
+
+                <label for="end-year">End Year:</label>
+                <input type="number" id="end-year" name="end-year" placeholder="Enter end year" required>
+
+                <label for="indicator">Indicator:</label>
+                <input type="text" id="indicator" name="indicator" placeholder="Enter indicator" required>
+
+                <label for="message">Message:</label>
+                <input type="text" id="message" name="message" placeholder="Enter your message (optional)">
+
+                <button type="submit">Submit Complaint</button>
+            </form>
+            <div id="contactResponse" class="info-message" style="display: none;"></div>
+        </div>
+    </div>
+
+
+    <footer class="custom-footer text-center text-lg-start pt-4">
+        <p>&copy; 2025 Multiverz, Singapore. All Rights Reserved.</p>
+    </footer>
+    <!-- Floating Chat Icon -->
+    <div class="chat-icon" onclick="toggleChat()">+ai</div>
+
+    <!-- Chatbot Container -->
+    <div class="chat-container" id="chat-container">
+        <div class="chat-header">
+            <span>Multiverz Brainstorming AI</span>
+            <button onclick="toggleChat()">✖</button>
+        </div>
+        
+        <div id="chat-box"></div>
+
+        <div class="chat-footer">
             <input type="text" id="user-input" placeholder="Type a message...">
             <button onclick="sendMessage()">Send</button>
+        </div>
+
+        <div id="loading" class="loading">
+            <div class="spinner"></div> AI is thinking...
         </div>
     </div>
 
     <script>
-        let userName = "";
+        function toggleChat() {
+            let chatContainer = document.getElementById("chat-container");
+            chatContainer.style.display = chatContainer.style.display === "none" ? "flex" : "none";
+        }
 
-        function saveUserName() {
-            userName = document.getElementById("user-name").value.trim();
-            if (!userName) {
-                alert("Please enter your name to start chatting.");
-                return;
-            }
-            document.getElementById("user-name-container").style.display = "none";
-            document.getElementById("chat-section").style.display = "block";
+        function formatAIResponse(text) {
+            return text
+                .replace(/### (.*?)\n/g, '<h3>$1</h3>')
+                .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
+                .replace(/(^|\n)(\d+)\. /g, '$1<b>$2.</b> ')
+                .replace(/\*(.*?)\*:/g, '<b>$1:</b>')
+                .replace(/\n- /g, '<br>- ')
+                .replace(/\n/g, '<br>');
         }
 
         function sendMessage() {
             let userInput = document.getElementById("user-input").value.trim();
             if (!userInput) return;
-
+        
             let chatBox = document.getElementById("chat-box");
-            let userMessage = `<div class='user-message'><strong>${userName}:</strong> ${userInput}</div>`;
-            chatBox.innerHTML += userMessage;
+            let loadingIndicator = document.getElementById("loading");
+        
+            let userMessage = document.createElement("div");
+            userMessage.classList.add("user-message");
+            userMessage.innerHTML = `<strong>You:</strong> ${userInput}`;
+            
+            chatBox.appendChild(userMessage);
+        
+            // Capture the latest user message's position before AI response
+            let latestUserMessagePosition = userMessage.offsetTop;
+        
             document.getElementById("user-input").value = "";
-
+        
+            loadingIndicator.style.display = "block";
+        
             fetch("/chat", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ user_name: userName, message: userInput })
+                body: JSON.stringify({ message: userInput })
             })
             .then(response => response.json())
             .then(data => {
-                let formattedResponse = formatAIResponse(data.ai_response);
-                let aiMessage = `
-                    <div class='ai-message'>
-                        <div class="ai-header"><strong>🤖 AI:</strong></div>
-                        <div class="ai-content">${formattedResponse}</div>
-                    </div>`;
-                chatBox.innerHTML += aiMessage;
-                chatBox.scrollTop = chatBox.scrollHeight;
+                let formattedResponse = formatAIResponse(data.ai_response || "I couldn't understand that.");
+                
+                let aiMessage = document.createElement("div");
+                aiMessage.classList.add("ai-message");
+                aiMessage.innerHTML = `<strong>🤖 AI:</strong> ${formattedResponse}`;
+        
+                chatBox.appendChild(aiMessage);
+                loadingIndicator.style.display = "none";
+        
+                // Scroll to the latest user message's position
+                chatBox.scrollTop = latestUserMessagePosition;
             })
-            .catch(error => console.error("Error:", error));
+            .catch(error => {
+                console.error("Error:", error);
+                loadingIndicator.style.display = "none";
+            });
         }
-
-        function formatAIResponse(response) {
-            let formatted = response.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>").replace(/\n/g, "<br>");
-            return formatted;
-        }
+        
     </script>
+    <script src="/static/scripts.js"></script>
 </body>
 </html>
