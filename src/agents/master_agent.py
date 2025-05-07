@@ -106,6 +106,10 @@ class MasterAgent:
         if self._is_cache_valid(cache_key):
             self.logger.info(f"Returning cached data for {params.get('indicator')}, {params.get('country')}")
             return self.cache[cache_key]["response"]
+            
+        # If data_source is 'all', use fetch_all_data instead
+        if data_source == 'all':
+            return await self.fetch_all_data(params)
 
         # Only fetch from the specified agent
         agent_class = self.agents.get(data_source)
